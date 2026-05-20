@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/tls"
       version = "~> 4.0"
     }
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -39,8 +43,10 @@ module "firewall" {
   location            = var.location
   resource_group_name = module.vnet.resource_group_name
   subnet_firewall_id  = module.vnet.subnet_firewall_id
+  subnet_public_id    = module.vnet.subnet_public_id
   subnet_private_id   = module.vnet.subnet_private_id
   subnet_database_id  = module.vnet.subnet_database_id
+  web_vm_private_ip   = "10.0.1.4"
 }
 
 module "bastion" {
@@ -61,18 +67,24 @@ module "database" {
   location            = var.location
   resource_group_name = module.vnet.resource_group_name
   subnet_database_id  = module.vnet.subnet_database_id
+  subnet_private_id   = module.vnet.subnet_private_id
   key_vault_id        = module.keyvault.key_vault_id
   depends_on          = [module.keyvault]
 }
 
+module "policy" {
+  source            = "./modules/policy"
+  resource_group_id = module.vnet.resource_group_id
+}
+
 module "vms" {
-  source                     = "./modules/vms"
-  location                   = var.location
-  resource_group_name        = module.vnet.resource_group_name
-  ssh_public_key             = module.keyvault.ssh_public_key
-  subnet_public_id           = module.vnet.subnet_public_id
-  subnet_private_id          = module.vnet.subnet_private_id
-  storage_account_name       = module.database.storage_account_name
-  storage_primary_key        = module.database.storage_primary_key
-  depends_on                 = [module.keyvault, module.database]
+  source              = "./modules/vms"
+  location            = var.location
+  resource_group_name = module.vnet.resource_group_name
+  ssh_public_key      = module.keyvault.ssh_public_key
+  subnet_public_id    = module.vnet.subnet_public_id
+  subnet_private_id   = module.vnet.subnet_private_id
+  key_vault_id        = module.keyvault.key_vault_id
+  key_vault_name      = module.keyvault.key_vault_name
+  depends_on          = [module.keyvault, module.database]
 }

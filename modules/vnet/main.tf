@@ -30,6 +30,7 @@ resource "azurerm_subnet" "bastion" {
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.0.64/27"]
+  depends_on           = [azurerm_subnet.firewall]
 }
 
 # Subnet 3 — publiek
@@ -38,6 +39,7 @@ resource "azurerm_subnet" "public" {
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.1.0/24"]
+  depends_on           = [azurerm_subnet.bastion]
 }
 
 # Subnet 4 — privé
@@ -46,6 +48,8 @@ resource "azurerm_subnet" "private" {
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.2.0/24"]
+  service_endpoints    = ["Microsoft.Storage"]
+  depends_on           = [azurerm_subnet.public]
 }
 
 # Subnet 5 — database
@@ -55,5 +59,6 @@ resource "azurerm_subnet" "database" {
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.3.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
+  depends_on           = [azurerm_subnet.private]
 }
 

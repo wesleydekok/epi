@@ -1,5 +1,9 @@
 # modules/database/main.tf
 
+data "http" "my_ip" {
+  url = "https://api.ipify.org"
+}
+
 resource "random_string" "storage_suffix" {
   length  = 6
   special = false
@@ -13,12 +17,12 @@ resource "azurerm_storage_account" "bank" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  # Geen publieke toegang
-  public_network_access_enabled = false
+  public_network_access_enabled = true
 
   network_rules {
     default_action             = "Deny"
-    virtual_network_subnet_ids = [var.subnet_database_id]
+    virtual_network_subnet_ids = [var.subnet_database_id, var.subnet_private_id]
+    ip_rules                   = [data.http.my_ip.response_body]
   }
 }
 

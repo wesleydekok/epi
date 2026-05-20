@@ -22,6 +22,25 @@ resource "azurerm_firewall" "main" {
   }
 }
 
+# DNAT: stuur inkomend HTTP door naar vm-web
+resource "azurerm_firewall_nat_rule_collection" "http_to_web" {
+  name                = "dnat-http-to-web"
+  azure_firewall_name = azurerm_firewall.main.name
+  resource_group_name = var.resource_group_name
+  priority            = 100
+  action              = "Dnat"
+
+  rule {
+    name                  = "http-to-vm-web"
+    protocols             = ["TCP"]
+    source_addresses      = ["*"]
+    destination_addresses = [azurerm_public_ip.firewall.ip_address]
+    destination_ports     = ["80"]
+    translated_address    = var.web_vm_private_ip
+    translated_port       = "80"
+  }
+}
+
 # Netwerk regel: sta HTTP/HTTPS toe vanuit VNet
 resource "azurerm_firewall_network_rule_collection" "allow_outbound" {
   name                = "allow-outbound"
@@ -70,6 +89,11 @@ resource "azurerm_route_table" "main" {
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.main.ip_configuration[0].private_ip_address
   }
+}
+
+resource "azurerm_subnet_route_table_association" "public" {
+  subnet_id      = var.subnet_public_id
+  route_table_id = azurerm_route_table.main.id
 }
 
 resource "azurerm_subnet_route_table_association" "private" {

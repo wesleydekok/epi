@@ -14,3 +14,7 @@ variable "subnet_private_id" {
 variable "subnet_database_id" {
   type = string
 }
+
+variable "bastion_subnet_prefix" {
+  type = string
+}

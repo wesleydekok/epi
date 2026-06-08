@@ -39,6 +39,16 @@ resource "azurerm_firewall_nat_rule_collection" "http_to_web" {
     translated_address    = var.web_vm_private_ip
     translated_port       = "80"
   }
+
+  rule {
+    name                  = "https-to-vm-web"
+    protocols             = ["TCP"]
+    source_addresses      = ["*"]
+    destination_addresses = [azurerm_public_ip.firewall.ip_address]
+    destination_ports     = ["443"]
+    translated_address    = var.web_vm_private_ip
+    translated_port       = "443"
+  }
 }
 
 # Netwerk regel: sta HTTP/HTTPS toe vanuit VNet

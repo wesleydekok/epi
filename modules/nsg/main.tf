@@ -11,7 +11,7 @@ resource "azurerm_network_security_group" "public" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "10.0.0.64/27"
+    source_address_prefix      = var.bastion_subnet_prefix
     destination_address_prefix = "*"
   }
   security_rule {
@@ -61,7 +61,7 @@ resource "azurerm_network_security_group" "private" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "10.0.0.64/27"
+    source_address_prefix      = var.bastion_subnet_prefix
     destination_address_prefix = "*"
   }
   security_rule {
@@ -70,6 +70,17 @@ resource "azurerm_network_security_group" "private" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5000"
+    source_address_prefix      = "10.0.1.0/24"
+    destination_address_prefix = "*"
+  }
+  security_rule {
+    name                       = "deny-all-from-public"
+    priority                   = 210
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
     source_address_prefix      = "10.0.1.0/24"
